@@ -123,13 +123,34 @@ static NSString * const RWTwitterInstantDomain = @"TwitterInstant";
 //    NSLog(@"An error ocurred: %@", error);
 //  }];
   // case 6 with deliverOn for change of thread:
-  [[[[[[self requestAccessToTwitterSignal] then:^RACSignal *{
+//  [[[[[[self requestAccessToTwitterSignal] then:^RACSignal *{
+//    @strongify(self)
+//    return self.searchText.rac_textSignal;
+//  }] filter:^BOOL(NSString *text) {
+//    @strongify(self)
+//    return [self isValidSearchText:text];
+//  }] flattenMap:^RACStream *(NSString *text) {
+//    @strongify(self)
+//    return [self signalForSearchWithText:text];
+//  }] deliverOn:[RACScheduler mainThreadScheduler]]
+//   subscribeNext:^(NSDictionary *jsonSearchResult) {
+//     NSArray *statuses = jsonSearchResult[@"statuses"];
+//     NSArray *tweets = [statuses linq_select:^id(id tweet) {
+//       return [RWTweet tweetWithStatus:tweet];
+//     }];
+//     [self.resultsViewController displayTweets:tweets];
+//   } error:^(NSError *error) {
+//     NSLog(@"An error ocurred: %@", error);
+//   }];
+    // Case 7, Implementation of Throttling
+  [[[[[[[self requestAccessToTwitterSignal] then:^RACSignal *{
     @strongify(self)
     return self.searchText.rac_textSignal;
   }] filter:^BOOL(NSString *text) {
     @strongify(self)
     return [self isValidSearchText:text];
-  }] flattenMap:^RACStream *(NSString *text) {
+  }] throttle:0.5]
+      flattenMap:^RACStream *(NSString *text) {
     @strongify(self)
     return [self signalForSearchWithText:text];
   }] deliverOn:[RACScheduler mainThreadScheduler]]
@@ -142,7 +163,6 @@ static NSString * const RWTwitterInstantDomain = @"TwitterInstant";
    } error:^(NSError *error) {
      NSLog(@"An error ocurred: %@", error);
    }];
-    
 }
 
 - (BOOL)isValidSearchText:(NSString *)text {
