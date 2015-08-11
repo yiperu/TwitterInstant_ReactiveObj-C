@@ -61,11 +61,32 @@ static NSString * const RWTwitterInstantDomain = @"TwitterInstant";
   self.twitterAccountType = [self.accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
 // -- - -
   // - - - -
-  
-  [[self requestAccessToTwitterSignal] subscribeNext:^(id x) {
-    NSLog(@"Access granted");
+  // Case 1
+//  [[self requestAccessToTwitterSignal] subscribeNext:^(id x) {
+//    NSLog(@"Access granted");
+//  } error:^(NSError *error) {
+//    NSLog(@"An error ocurred: %@", error);
+//  }];
+  // Case 2
+//  [[[self requestAccessToTwitterSignal] then:^RACSignal *{
+//    @strongify(self)
+//    return self.searchText.rac_textSignal;
+//  }] subscribeNext:^(id x) {
+//    NSLog(@"%@",x);
+//  } error:^(NSError *error) {
+//    NSLog(@"An error occurred: %@",error);
+//  }];
+  // Case 3
+  [[[[self requestAccessToTwitterSignal] then:^RACSignal *{
+    @strongify(self)
+    return self.searchText.rac_textSignal;
+  }] filter:^BOOL(NSString *text) {
+    @strongify(self)
+    return [self isValidSearchText:text];
+  }] subscribeNext:^(id x) {
+    NSLog(@"%@",x);
   } error:^(NSError *error) {
-    NSLog(@"An error ocurred: %@", error);
+    NSLog(@"An error occurred: %@",error);
   }];
   
 }
