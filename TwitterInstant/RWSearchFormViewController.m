@@ -12,6 +12,16 @@
 #import <ReactiveCocoa.h>
 #import "RACEXTScope.h"
 
+#import <Accounts/Accounts.h>
+#import <Social/Social.h>
+
+typedef NS_ENUM(NSInteger, RWTwitterInstantError) {
+  RWTwitterInstantErrorAccessDenied,
+  RWTwitterInstantErrorNoTwitterAccounts,
+  RWTwitterInstantErrorInvalidResponse
+};
+
+static NSString * const RWTwitterInstantDomain = @"TwitterInstant";
 
 
 @interface RWSearchFormViewController ()
@@ -19,6 +29,10 @@
 @property (weak, nonatomic) IBOutlet UITextField *searchText;
 
 @property (strong, nonatomic) RWSearchResultsViewController *resultsViewController;
+
+@property (strong, nonatomic) ACAccountStore *accountStore;
+@property (strong, nonatomic) ACAccountType *twitterAccountType;
+
 
 @end
 
@@ -42,7 +56,18 @@
     @strongify(self)
     self.searchText.backgroundColor = color;
   }];
-
+// - -- -
+  self.accountStore = [[ACAccountStore alloc] init];
+  self.twitterAccountType = [self.accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+// -- - -
+  // - - - -
+  
+  [[self requestAccessToTwitterSignal] subscribeNext:^(id x) {
+    NSLog(@"Access granted");
+  } error:^(NSError *error) {
+    NSLog(@"An error ocurred: %@", error);
+  }];
+  
 }
 
 - (BOOL)isValidSearchText:(NSString *)text {
@@ -56,5 +81,36 @@
   textFieldLayer.borderWidth = 2.0f;
   textFieldLayer.cornerRadius = 0.0f;
 }
+
+-(RACSignal *)requestAccessToTwitterSignal {
+//1 - define an error
+  NSError *accessError = [NSError errorWithDomain:RWTwitterInstantDomain code:RWTwitterInstantErrorAccessDenied userInfo:nil];
+  
+  // 2 - Create a signal
+  @weakify(self)
+  return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+    // 3 - request access to twitter
+    @strongify(self)
+    [self.accountStore requestAccessToAccountsWithType:self.twitterAccountType options:nil completion:^(BOOL granted, NSError *error) {
+      // 4 - handle the response
+      if (!granted) {
+        [subscriber sendError:accessError];
+      } else {
+        [subscriber sendNext:nil];
+        [subscriber sendCompleted];
+      }
+    }];
+    return nil;
+  }];
+
+}
+
+
+
+
+
+
+
+
 
 @end
