@@ -9,6 +9,9 @@
 #import "RWSearchFormViewController.h"
 #import "RWSearchResultsViewController.h"
 
+#import <ReactiveCocoa.h>
+
+
 @interface RWSearchFormViewController ()
 
 @property (weak, nonatomic) IBOutlet UITextField *searchText;
@@ -16,6 +19,7 @@
 @property (strong, nonatomic) RWSearchResultsViewController *resultsViewController;
 
 @end
+
 
 @implementation RWSearchFormViewController
 
@@ -28,10 +32,21 @@
   [self styleTextField:self.searchText];
   
   self.resultsViewController = self.splitViewController.viewControllers[1];
-  
+  // - - -  Start with reactive Code
+  [[self.searchText.rac_textSignal map:^id(NSString *text) {
+    return [self isValidSearchText:text] ? [UIColor whiteColor]:[UIColor yellowColor];
+  }] subscribeNext:^(UIColor* color) {
+    self.searchText.backgroundColor = color;
+  }];
+
+}
+
+- (BOOL)isValidSearchText:(NSString *)text {
+  return text.length > 2;
 }
 
 - (void)styleTextField:(UITextField *)textField {
+  
   CALayer *textFieldLayer = textField.layer;
   textFieldLayer.borderColor = [UIColor grayColor].CGColor;
   textFieldLayer.borderWidth = 2.0f;
