@@ -4,24 +4,30 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>LinqToObjectiveC.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>0</integer>
 		</dict>
 		<key>ReactiveCocoa.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>1</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>0D991E7647338654F8B2E4C7467E824B</key>
+		<key>277B0C4BF83B4D8D1DEC8548033D7128</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>375E713B843144F8478C6ED65084A743</key>
 		<dict>
 			<key>primary</key>
 			<true/>

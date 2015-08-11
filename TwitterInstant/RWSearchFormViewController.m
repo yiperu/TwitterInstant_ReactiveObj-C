@@ -15,6 +15,9 @@
 #import <Accounts/Accounts.h>
 #import <Social/Social.h>
 
+#import "RWTweet.h"
+#import "NSArray+LinqExtensions.h"
+
 typedef NS_ENUM(NSInteger, RWTwitterInstantError) {
   RWTwitterInstantErrorAccessDenied,
   RWTwitterInstantErrorNoTwitterAccounts,
@@ -89,20 +92,57 @@ static NSString * const RWTwitterInstantDomain = @"TwitterInstant";
 //    NSLog(@"An error occurred: %@",error);
 //  }];
   // case 4 with flattenMap:
-    [[[[[self requestAccessToTwitterSignal] then:^RACSignal *{
-      @strongify(self)
-      return self.searchText.rac_textSignal;
-    }] filter:^BOOL(NSString *text) {
-      @strongify(self)
-      return [self isValidSearchText:text];
-    }] flattenMap:^RACStream *(NSString *text) {
-      @strongify(self)
-      return [self signalForSearchWithText:text];
-    }] subscribeNext:^(id x) {
-      NSLog(@"%@",x);
-    } error:^(NSError *error) {
-      NSLog(@"An error ocurred: %@", error);
-    }];
+//    [[[[[self requestAccessToTwitterSignal] then:^RACSignal *{
+//      @strongify(self)
+//      return self.searchText.rac_textSignal;
+//    }] filter:^BOOL(NSString *text) {
+//      @strongify(self)
+//      return [self isValidSearchText:text];
+//    }] flattenMap:^RACStream *(NSString *text) {
+//      @strongify(self)
+//      return [self signalForSearchWithText:text];
+//    }] subscribeNext:^(id x) {
+//      NSLog(@"%@",x);
+//    } error:^(NSError *error) {
+//      NSLog(@"An error ocurred: %@", error);
+//    }];
+  // case 5 with deliverOn for change of thread:
+//  [[[[[[self requestAccessToTwitterSignal] then:^RACSignal *{
+//    @strongify(self)
+//    return self.searchText.rac_textSignal;
+//  }] filter:^BOOL(NSString *text) {
+//    @strongify(self)
+//    return [self isValidSearchText:text];
+//  }] flattenMap:^RACStream *(NSString *text) {
+//    @strongify(self)
+//    return [self signalForSearchWithText:text];
+//  }] deliverOn:[RACScheduler mainThreadScheduler]]
+//    subscribeNext:^(id x) {
+//    NSLog(@"%@",x);
+//  } error:^(NSError *error) {
+//    NSLog(@"An error ocurred: %@", error);
+//  }];
+  // case 6 with deliverOn for change of thread:
+  [[[[[[self requestAccessToTwitterSignal] then:^RACSignal *{
+    @strongify(self)
+    return self.searchText.rac_textSignal;
+  }] filter:^BOOL(NSString *text) {
+    @strongify(self)
+    return [self isValidSearchText:text];
+  }] flattenMap:^RACStream *(NSString *text) {
+    @strongify(self)
+    return [self signalForSearchWithText:text];
+  }] deliverOn:[RACScheduler mainThreadScheduler]]
+   subscribeNext:^(NSDictionary *jsonSearchResult) {
+     NSArray *statuses = jsonSearchResult[@"statuses"];
+     NSArray *tweets = [statuses linq_select:^id(id tweet) {
+       return [RWTweet tweetWithStatus:tweet];
+     }];
+     [self.resultsViewController displayTweets:tweets];
+   } error:^(NSError *error) {
+     NSLog(@"An error ocurred: %@", error);
+   }];
+    
 }
 
 - (BOOL)isValidSearchText:(NSString *)text {
